@@ -362,6 +362,83 @@ Elvárások:
       { name: "Etel.cs", hint: "ToString() adja a sorformátumot", code: TELJES_WPF_KOD.etelCs },
       { name: "MainWindow.xaml", hint: "Mentés gomb Click eseménye", code: TELJES_WPF_KOD.mainWindowXaml }
     ]
+  },
+  {
+    id: "8",
+    title: "8. összefoglaló",
+    description:
+`Ez a feladat egy rövid, tanulóbarát összefoglaló a teljes WPF projektről.
+
+Cél: egy helyen lásd, hogyan áll össze a modell + beolvasás + megjelenítés + szűrés + mentés.`,
+    files: [
+      { name: "Etel.cs", hint: "Teljes modell (adatok)", code: TELJES_WPF_KOD.etelCs },
+      { name: "MainWindow.xaml", hint: "Teljes felület (gombok + TextBox + DataGrid)", code: TELJES_WPF_KOD.mainWindowXaml },
+      { name: "MainWindow.xaml.cs", hint: "Teljes működés (betöltés, szűrés, mentés)", code: TELJES_WPF_KOD.mainWindowXamlCs },
+      {
+        name: "Osszefoglalo.txt",
+        hint: "Teljes projekt áttekintés (magyarázat)",
+        code:
+`/*
+8. összefoglaló – a teljes WPF alkalmazás felépítése
+
+1) Adatmodell (Etel osztály – Etel.cs)
+   - A modell egy ételt ír le: Nev, Kategoria, Ar, Kaloria.
+   - A ToString() visszaad egy mentésre alkalmas sort:
+     "Nev;Kategoria;Ar;Kaloria"
+
+2) Adatbetöltés fájlból (OpenFileDialog + CSV olvasás – MainWindow.xaml.cs)
+   - A "Megnyitás" gomb megnyit egy OpenFileDialog-ot.
+   - A kiválasztott fájlt soronként beolvassuk (pl. .csv vagy .txt).
+   - Minden nem üres sort feldarabolunk ';' mentén:
+       Nev;Kategoria;Ar;Kaloria
+   - Hibakezelés:
+     - try/catch köré tesszük a beolvasást
+     - hibánál MessageBox-ban jelezzük (érthető üzenettel)
+
+3) Adattárolás (ObservableCollection – MainWindow.xaml.cs)
+   - Az ételeket ObservableCollection<Etel> tárolja.
+   - Előnye: a felület (DataGrid) automatikusan követi a változásokat.
+   - Új fájl betöltésekor a listát kiürítjük és újratöltjük.
+
+4) Megjelenítés (DataGrid kötés – MainWindow.xaml + MainWindow.xaml.cs)
+   - A DataGrid oszlopai kézzel vannak megadva (AutoGenerateColumns="False"):
+     Név, Kategória, Ár (Ft), Kalória
+   - A DataGrid ItemsSource-a egy nézetre (ICollectionView) van kötve,
+     ami a szűrést is tudja kezelni.
+
+5) Szűrés (kis/nagybetű független – nézet szűrő feltétel)
+   - A TextBox-ba beírt szöveg alapján szűrünk.
+   - Logika: akkor látszik egy sor, ha a keresett szöveg benne van
+     a Nev vagy a Kategoria mezőben (kis/nagybetű független).
+   - Megvalósítási ötlet (tanulói szemlélettel):
+     - a nézet Filter függvénye dönt True/False értékkel
+     - kis/nagybetű független kereséshez használhatsz:
+         IndexOf(keresett, StringComparison.OrdinalIgnoreCase) >= 0
+     - ha külön „szűrt lista” kell, LINQ-kal így nézhet ki:
+         var szurtEtelek = etelek
+           .Where(etel => etel.Nev.Contains(keresett, StringComparison.OrdinalIgnoreCase)
+                       || etel.Kategoria.Contains(keresett, StringComparison.OrdinalIgnoreCase))
+           .ToList();
+   - Gépelés közben is frissíthető a nézet (TextChanged → Refresh()).
+
+6) Visszaállítás (szűrés törlése)
+   - A "Visszaállítás" gomb lenullázza a keresőmezőt (TextBox üres lesz).
+   - Ezután a nézetet frissítjük, így újra minden tétel látszik.
+
+7) Mentés (SaveFileDialog – csak a szűrt lista mentése)
+   - A "Mentés" gomb megnyit egy SaveFileDialog-ot.
+   - Mentéskor nem az összes elem, hanem az aktuálisan megjelenített
+     (tehát szűrés után látható) elemek kerülnek fájlba.
+   - A mentés soronként történik: Etel.ToString() adja a "CSV" sort.
+   - Hibakezelés itt is try/catch + MessageBox.
+
+Összkép:
+   - XAML: felület (gombok, TextBox, DataGrid)
+   - C#: adatok kezelése (betöltés, tárolás, szűrés, mentés)
+   - Modell: Etel osztály (adatok szerkezete)
+*/`
+      }
+    ]
   }
 ];
 

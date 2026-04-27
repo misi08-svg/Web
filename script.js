@@ -1,448 +1,307 @@
 const TELJES_WPF_KOD = {
-  etelCs: `using System;
+  dronCs: `using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace Etelek
+namespace WpfDronok.Model
 {
-    public class Etel
+    public class Dron
     {
-        public string Nev { get; set; } = "";
-        public string Kategoria { get; set; } = "";
-        public int Ar { get; set; }
-        public int Kaloria { get; set; }
+        public string Nev { get; set; }
+        public string Tipus { get; set; }
+        public int GyartasiEv { get; set; }
+        public int MaxSebesseg { get; set; }
+        public int AkkuKapacitas { get; set; }
+        public int RepulesiIdo { get; set; }
 
-        public Etel() { }
-
-        public Etel(string nev, string kategoria, int ar, int kaloria)
+        public Dron(string sor,char hatarolo)
         {
-            Nev = nev;
-            Kategoria = kategoria;
-            Ar = ar;
-            Kaloria = kaloria;
+            var adatok = sor.Split(hatarolo);
+            Nev = adatok[0];
+            Tipus = adatok[1];
+            GyartasiEv=Convert.ToInt32(adatok[2]);
+            MaxSebesseg=Convert.ToInt32(adatok[3]);
+            AkkuKapacitas=Convert.ToInt32(adatok[4]);
+            RepulesiIdo=Convert.ToInt32(adatok[5]);
         }
-
-        public override string ToString()
-            => $"{Nev};{Kategoria};{Ar};{Kaloria}";
     }
 }
 `,
-  mainWindowXaml: `<Window x:Class="Etelek.MainWindow"
+  dronListaCs: `using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace WpfDronok.Model
+{
+    public class DronLista
+    {
+        public List<Dron> Dronok { get; set; } = new List<Dron>();
+
+        public DronLista(string fajl,char hatarolo,int start=1)
+        {
+            var sorok=File.ReadAllLines(fajl,Encoding.Default);
+
+            for(int i = start; i < sorok.Length; i++)
+            {
+                Dronok.Add(new Dron(sorok[i], hatarolo));
+            }
+            
+        }
+    }
+}
+`,
+  mainWindowXamlCs: `using Microsoft.Win32;
+using System.Text;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Data;
+using System.Windows.Documents;
+using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using System.Windows.Navigation;
+using System.Windows.Shapes;
+using WpfDronok.Model;
+using WpfDronok.Views;
+
+namespace WpfDronok;
+
+/// <summary>
+/// Interaction logic for MainWindow.xaml
+/// </summary>
+public partial class MainWindow : Window
+{
+    public List<Dron> Dronok { get; set; }=new List<Dron>();
+    public MainWindow()
+    {
+        InitializeComponent();
+    }
+
+    private void menuitemKilepes_Click(object sender, RoutedEventArgs e)
+    {
+        Environment.Exit(0);
+    }
+
+    private void menuitemNevjegy_Click(object sender, RoutedEventArgs e)
+    {
+        NevjegyView nevjegy=new NevjegyView();
+        nevjegy.ShowDialog();
+    }
+
+    private void menuitemMegnyitas_Click(object sender, RoutedEventArgs e)
+    {
+        OpenFileDialog dialog = new OpenFileDialog();
+        dialog.Filter = ".csv fájlok|*.csv|minden fájl|*.*";
+
+        if (dialog.ShowDialog()==true)
+        {
+            try
+            {
+                Dronok = new DronLista(dialog.FileName, ',').Dronok;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);                
+            }
+        }
+    }
+
+    private void menuitemTipusSzures_Click(object sender, RoutedEventArgs e)
+    {
+        TipusSzuresView tipusSzures = new TipusSzuresView(Dronok);
+        tipusSzures.ShowDialog();
+    }
+
+    private void menuitemMentes_Click(object sender, RoutedEventArgs e)
+    {
+        //Nem ebben az ablakban vagyunk.
+    }
+}
+`,
+  mainWindowXaml: `<Window x:Class="WpfDronok.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:WpfDronok"
         mc:Ignorable="d"
-        Title="Etelek" Height="520" Width="900"
-        WindowStartupLocation="CenterScreen">
-    <Grid Margin="12">
+        Title="Drónok" Height="450" Width="800">
+    <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="12"/>
-            <RowDefinition Height="*"/>
+            <RowDefinition Height="9*"/>
         </Grid.RowDefinitions>
+        <Menu FontSize="18">
+            <MenuItem Header="Fájl">
+                <MenuItem x:Name="menuitemMegnyitas" Header="Megnyitás" Click="menuitemMegnyitas_Click"/>
+                <MenuItem x:Name="menuitemMentes" Header="Mentés" Click="menuitemMentes_Click"/>
+                <MenuItem Header="Mentés másként" />
+                <MenuItem x:Name="menuitemKilepes" Header="Kilépés" Click="menuitemKilepes_Click"/>
 
-        <Border Background="#141823" BorderBrush="#2A3144" BorderThickness="1" CornerRadius="10" Padding="10">
-            <DockPanel LastChildFill="True">
-                <StackPanel DockPanel.Dock="Left" Orientation="Horizontal">
-                    <Button Content="Megnyitás" Width="110" Margin="0,0,8,0" Click="Megnyitas_Click"/>
-                    <TextBox x:Name="SzuroTextBox" Width="220" Margin="0,0,8,0"
-                             VerticalContentAlignment="Center"
-                             TextChanged="SzuroTextBox_TextChanged"
-                             ToolTip="Szűrés név vagy kategória alapján (kis/nagybetű független)"/>
-                    <Button Content="Szűrés" Width="90" Margin="0,0,8,0" Click="Szures_Click"/>
-                    <Button Content="Visszaállítás" Width="120" Margin="0,0,8,0" Click="Visszaallitas_Click"/>
-                </StackPanel>
+            </MenuItem>
+            <MenuItem Header="Szerkesztés">
+                <MenuItem Header="Kivágás"/>
+                <MenuItem Header="Másolás"/>
+                <MenuItem Header="Beillesztés"/>
+            </MenuItem>
+            <MenuItem Header="Adatok">
+                <MenuItem x:Name="menuitemTipusSzures" Header="Szűrés típus szerint" Click="menuitemTipusSzures_Click"/>
+            </MenuItem>
+            <MenuItem Header="Súgó">
+                <MenuItem x:Name="menuitemNevjegy" Header="Névjegy" Click="menuitemNevjegy_Click"/>
+            </MenuItem>
+            
+        </Menu>
 
-                <Button DockPanel.Dock="Right" Content="Mentés" Width="100" Click="Mentes_Click"/>
-            </DockPanel>
-        </Border>
-
-        <DataGrid Grid.Row="2"
-                  x:Name="EtelekDataGrid"
-                  AutoGenerateColumns="False"
-                  IsReadOnly="True"
-                  CanUserAddRows="False"
-                  HeadersVisibility="Column"
-                  GridLinesVisibility="Horizontal"
-                  RowBackground="#0B0E14"
-                  AlternatingRowBackground="#0F1526"
-                  BorderBrush="#2A3144"
-                  BorderThickness="1"
-                  Margin="0">
-            <DataGrid.Columns>
-                <DataGridTextColumn Header="Név" Binding="{Binding Nev}" Width="2*"/>
-                <DataGridTextColumn Header="Kategória" Binding="{Binding Kategoria}" Width="2*"/>
-                <DataGridTextColumn Header="Ár (Ft)" Binding="{Binding Ar}" Width="*"/>
-                <DataGridTextColumn Header="Kalória" Binding="{Binding Kaloria}" Width="*"/>
-            </DataGrid.Columns>
-        </DataGrid>
     </Grid>
 </Window>
 `,
-  mainWindowXamlCs: `using Microsoft.Win32;
+  tipusSzuresViewXamlCs: `using Microsoft.Win32;
 using System;
-using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.Globalization;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Data;
+using System.Windows.Documents;
+using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using System.Windows.Shapes;
+using WpfDronok.Model;
 
-namespace Etelek
+namespace WpfDronok.Views
 {
-    public partial class MainWindow : Window
+    /// <summary>
+    /// Interaction logic for TipusSzuresView.xaml
+    /// </summary>
+    public partial class TipusSzuresView : Window
     {
-        private readonly ObservableCollection<Etel> _etelek = new ObservableCollection<Etel>();
-        private readonly ICollectionView _etelekNezet;
-
-        public MainWindow()
+        public List<Dron> Dronok { get; set; }=new List<Dron>();
+        public TipusSzuresView(List<Dron> dronok)
         {
             InitializeComponent();
-
-            _etelekNezet = CollectionViewSource.GetDefaultView(_etelek);
-            _etelekNezet.Filter = SzuresFeltetel;
-
-            EtelekDataGrid.ItemsSource = _etelekNezet;
+            Dronok= dronok;
+            datagridDronok.ItemsSource = Dronok;
+            comboDronok.ItemsSource = Dronok.OrderBy(x=>x.Tipus).Select(x=>x.Tipus).Distinct().ToList();
         }
 
-        private bool SzuresFeltetel(object objektum)
+        private void buttonKeres_Click(object sender, RoutedEventArgs e)
         {
-            if (objektum is not Etel etel) return false;
+            datagridDronok.ItemsSource = null;
 
-            string keresett = (SzuroTextBox?.Text ?? "").Trim();
-            if (string.IsNullOrWhiteSpace(keresett))
-                return true;
+            var keresett = textboxKereses.Text;
+            //Megegyzés vizsgálata
+            //var eredmeny=Dronok.FindAll(x=>x.Tipus.ToLower()==keresett.ToLower());
 
-            return TartalmazKisNagybetuFuggetlen(etel.Nev, keresett)
-                || TartalmazKisNagybetuFuggetlen(etel.Kategoria, keresett);
-        }
+            //Tartalmazás vizsgálata
+            var eredmeny = Dronok.FindAll(x => x.Tipus.ToLower().Contains(keresett.ToLower()));
 
-        private static bool TartalmazKisNagybetuFuggetlen(string szoveg, string resz)
-        {
-            if (szoveg == null) return false;
-            if (resz == null) return true;
 
-            return szoveg.IndexOf(resz, StringComparison.OrdinalIgnoreCase) >= 0;
-        }
-
-        private void Megnyitas_Click(object sender, RoutedEventArgs e)
-        {
-            var megnyitasAblak = new OpenFileDialog
+            if (eredmeny.Count()>0)
             {
-                Title = "Ételek fájl megnyitása",
-                Filter = "CSV / szöveg (*.csv;*.txt)|*.csv;*.txt|Minden fájl (*.*)|*.*",
-                CheckFileExists = true
-            };
-
-            if (megnyitasAblak.ShowDialog() != true) return;
-
-            try
+                datagridDronok.ItemsSource= eredmeny;
+            } else
             {
-                BetoltesFajlbol(megnyitasAblak.FileName);
-                _etelekNezet.Refresh();
-                MessageBox.Show("Sikeres betöltés.", "OK", MessageBoxButton.OK, MessageBoxImage.Information);
-            }
-            catch (Exception kivetel)
-            {
-                MessageBox.Show(
-                    "Hiba történt a beolvasás közben:\n" + kivetel.Message,
-                    "Hiba",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error
-                );
+                MessageBox.Show("Nincs ilyen adat!");
             }
         }
 
-        private void BetoltesFajlbol(string fajlUt)
+        private void buttonVissza_Click(object sender, RoutedEventArgs e)
         {
-            _etelek.Clear();
+            datagridDronok.ItemsSource = Dronok;
+        }
 
-            var sorok = File.ReadAllLines(fajlUt);
+        private void comboDronok_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            var kivalasztott=comboDronok.SelectedItem as string;
+            var eredmeny = Dronok.FindAll(x => x.Tipus == kivalasztott);
 
-            foreach (var nyersSor in sorok)
+            datagridDronok.ItemsSource=eredmeny;
+        }
+
+        private void buttonMentes_Click(object sender, RoutedEventArgs e)
+        {
+            SaveFileDialog dialog = new SaveFileDialog();
+            dialog.Filter = ".csv fájlok|*.csv|.txt fájlok|*.txt";
+            //???
+            if (dialog.ShowDialog()==true)
             {
-                var sor = (nyersSor ?? "").Trim();
-                if (string.IsNullOrWhiteSpace(sor))
-                    continue;
+                try
+                {
+                    FileStream fajl = new FileStream(dialog.FileName, FileMode.Create);
 
-                // Várt formátum: Nev;Kategoria;Ar;Kaloria
-                var mezok = sor.Split(';');
-                if (mezok.Length < 4)
-                    throw new FormatException("Hibás sorformátum (kevés mező): " + sor);
+                    using (StreamWriter writer = new StreamWriter(fajl, Encoding.UTF8))
+                    {
+                        writer.WriteLine($"nev;tipus;gyartasiev;maxsebesseg;akkukapacitas;repulesido");
 
-                string nev = mezok[0].Trim();
-                string kategoria = mezok[1].Trim();
+                        foreach (var i in datagridDronok.ItemsSource as List<Dron>)
+                        {
+                            writer.WriteLine($"{i.Nev};{i.Tipus};{i.GyartasiEv};{i.MaxSebesseg};{i.AkkuKapacitas};{i.RepulesiIdo}");
+                        }
+                    }
+                                                      
 
-                if (!int.TryParse(mezok[2].Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int ar))
-                    throw new FormatException("Hibás ár érték: " + mezok[2]);
+                    
+                    
+                    MessageBox.Show("Fájlba írás kész!");
 
-                if (!int.TryParse(mezok[3].Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int kaloria))
-                    throw new FormatException("Hibás kalória érték: " + mezok[3]);
-
-                _etelek.Add(new Etel(nev, kategoria, ar, kaloria));
+                    
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(ex.Message, "Hiba!", MessageBoxButton.OK, MessageBoxImage.Error);                    
+                }
             }
-        }
-
-        private void SzuroTextBox_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
-        {
-            // Gépelés közben is frissül a nézet
-            _etelekNezet.Refresh();
-        }
-
-        private void Szures_Click(object sender, RoutedEventArgs e)
-        {
-            _etelekNezet.Refresh();
-        }
-
-        private void Visszaallitas_Click(object sender, RoutedEventArgs e)
-        {
-            SzuroTextBox.Text = "";
-            _etelekNezet.Refresh();
-        }
-
-        private void Mentes_Click(object sender, RoutedEventArgs e)
-        {
-            if (!_etelek.Any())
-            {
-                MessageBox.Show("Nincs mit menteni (üres a lista).", "Figyelem", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
-
-            var mentesAblak = new SaveFileDialog
-            {
-                Title = "Mentés fájlba",
-                Filter = "CSV (*.csv)|*.csv|Szöveg (*.txt)|*.txt|Minden fájl (*.*)|*.*",
-                FileName = "etelek_szurt.csv",
-                OverwritePrompt = true
-            };
-
-            if (mentesAblak.ShowDialog() != true) return;
-
-            try
-            {
-                MentesFajlba(mentesAblak.FileName);
-                MessageBox.Show("Sikeres mentés.", "OK", MessageBoxButton.OK, MessageBoxImage.Information);
-            }
-            catch (Exception kivetel)
-            {
-                MessageBox.Show(
-                    "Hiba történt a mentés közben:\n" + kivetel.Message,
-                    "Hiba",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error
-                );
-            }
-        }
-
-        private void MentesFajlba(string fajlUt)
-        {
-            // Mentés mindig az aktuálisan megjelenített (szűrt) elemekből történik
-            var sorok = _etelekNezet.Cast<Etel>().Select(etel => etel.ToString()).ToArray();
-            File.WriteAllLines(fajlUt, sorok);
         }
     }
 }
+`,
+  tipusSzuresViewXaml: `<Window x:Class="WpfDronok.Views.TipusSzuresView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:WpfDronok.Views"
+        mc:Ignorable="d"
+        Title="TipusSzuresView" Height="450" Width="800">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="8*"/>
+            <RowDefinition Height="2*"/>
+        </Grid.RowDefinitions>
+        <DataGrid x:Name="datagridDronok" ColumnWidth="*" />
+        <WrapPanel Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center">
+            <ComboBox x:Name="comboDronok" FontSize="16" SelectionChanged="comboDronok_SelectionChanged"/>
+            <Button x:Name="buttonVissza" Content="Vissza" FontSize="16" Margin="10,0,0,0" Click="buttonVissza_Click"/>
+            <TextBox x:Name="textboxKereses" FontSize="16" Width="200" Margin="10,0,0,0" />
+            <Button x:Name="buttonKeres" Content="Keres" FontSize="16" Margin="10,0,0,0" Click="buttonKeres_Click"/>
+            <Button x:Name="buttonMentes" Content="Szűrés mentése" FontSize="16" Margin="10,0,0,0" Click="buttonMentes_Click"/>
+
+        </WrapPanel>
+
+    </Grid>
+</Window>
 `
 };
 
-const TASKS = [
-  {
-    id: "1",
-    title: "1. feladat",
-    description:
-`Készítsd el a projektet és az alap struktúrát.
-
-- Hozz létre egy WPF projektet 'Etelek' néven.
-- A megoldás 3 fájlból áll: Etel.cs (modell), MainWindow.xaml (UI), MainWindow.xaml.cs (logika).
-- A felület célja: fájl megnyitása, szűrés, szűrés visszaállítása, mentés.`,
-    files: [
-      { name: "Etel.cs", hint: "Modell (osztály)", code: TELJES_WPF_KOD.etelCs },
-      { name: "MainWindow.xaml", hint: "Felhasználói felület", code: TELJES_WPF_KOD.mainWindowXaml },
-      { name: "MainWindow.xaml.cs", hint: "Eseménykezelők és adatkezelés", code: TELJES_WPF_KOD.mainWindowXamlCs }
-    ]
-  },
-  {
-    id: "2",
-    title: "2. feladat",
-    description:
-`Készítsd el az Etel modellosztályt.
-
-Elvárások:
-- Tulajdonságok: Név, Kategória, Ár, Kalória
-- Konstruktor(ok)
-- ToString() a mentéshez (CSV-szerű formátum: Nev;Kategoria;Ar;Kaloria)`,
-    files: [
-      { name: "Etel.cs", hint: "Teljes, működő modell", code: TELJES_WPF_KOD.etelCs },
-      { name: "MainWindow.xaml", hint: "Ablak a modell megjelenítéséhez", code: TELJES_WPF_KOD.mainWindowXaml },
-      { name: "MainWindow.xaml.cs", hint: "Betöltés + megjelenítés a modellből", code: TELJES_WPF_KOD.mainWindowXamlCs }
-    ]
-  },
-  {
-    id: "3",
-    title: "3. feladat",
-    description:
-`Készítsd el a MainWindow felületét (XAML).
-
-Kötelező elemek:
-- Gombok: Megnyitás, Szűrés, Visszaállítás, Mentés
-- TextBox a keresési/szűrési szöveghez
-- DataGrid az ételek megjelenítésére
-
-Tipp:
-- AutoGenerateColumns="False" és kézzel definiált oszlopok (Név, Kategória, Ár, Kalória).`,
-    files: [
-      { name: "MainWindow.xaml", hint: "Teljes UI (gombok + TextBox + DataGrid)", code: TELJES_WPF_KOD.mainWindowXaml },
-      { name: "Etel.cs", hint: "A DataGrid ehhez a modellhez köt", code: TELJES_WPF_KOD.etelCs },
-      { name: "MainWindow.xaml.cs", hint: "ItemsSource + események", code: TELJES_WPF_KOD.mainWindowXamlCs }
-    ]
-  },
-  {
-    id: "4",
-    title: "4. feladat",
-    description:
-`Valósítsd meg a fájl beolvasását OpenFileDialog segítségével.
-
-Elvárások:
-- OpenFileDialog használata (Megnyitás gomb)
-- Soronkénti beolvasás (CSV vagy txt)
-- Hibakezelés (try/catch) és érthető hibaüzenet (MessageBox)
-- A beolvasott adatokból Etel objektumok készítése`,
-    files: [
-      { name: "MainWindow.xaml.cs", hint: "Megnyitás + BetoltesFajlbol + try/catch", code: TELJES_WPF_KOD.mainWindowXamlCs },
-      { name: "Etel.cs", hint: "Beolvasott sorokból példányosítva", code: TELJES_WPF_KOD.etelCs },
-      { name: "MainWindow.xaml", hint: "Megnyitás gomb Click eseménye", code: TELJES_WPF_KOD.mainWindowXaml }
-    ]
-  },
-  {
-    id: "5",
-    title: "5. feladat",
-    description:
-`Használj ObservableCollection-t és kösd a DataGrid-hez.
-
-Elvárások:
-- ObservableCollection<Etel> tárolja az ételeket
-- DataGrid ItemsSource erre a gyűjteményre (pontosabban egy nézetre) legyen kötve
-- Beolvasáskor a lista ürüljön és újratöltődjön`,
-    files: [
-      { name: "MainWindow.xaml.cs", hint: "ObservableCollection + ICollectionView + ItemsSource", code: TELJES_WPF_KOD.mainWindowXamlCs },
-      { name: "MainWindow.xaml", hint: "DataGrid megjelenítés", code: TELJES_WPF_KOD.mainWindowXaml },
-      { name: "Etel.cs", hint: "A rekord típusa", code: TELJES_WPF_KOD.etelCs }
-    ]
-  },
-  {
-    id: "6",
-    title: "6. feladat",
-    description:
-`Valósítsd meg a szűrést (kis/nagybetű független) és a visszaállítást.
-
-Elvárások:
-- TextBox-ba írt keresőkifejezés alapján szűrés
-- Szűrés név VAGY kategória mezőben
-- Case-insensitive összehasonlítás
-- Visszaállítás gomb törli a TextBox-ot és frissíti a nézetet`,
-    files: [
-      { name: "MainWindow.xaml.cs", hint: "ICollectionView.Filter + Refresh + Visszaállítás", code: TELJES_WPF_KOD.mainWindowXamlCs },
-      { name: "MainWindow.xaml", hint: "TextChanged + Szűrés/Visszaállítás gombok", code: TELJES_WPF_KOD.mainWindowXaml },
-      { name: "Etel.cs", hint: "Szűréshez használt string mezők", code: TELJES_WPF_KOD.etelCs }
-    ]
-  },
-  {
-    id: "7",
-    title: "7. feladat",
-    description:
-`Valósítsd meg a mentést SaveFileDialog segítségével.
-
-Elvárások:
-- SaveFileDialog használata (Mentés gomb)
-- Mentés az aktuálisan megjelenített (szűrt) elemekből
-- Hibakezelés (try/catch) + MessageBox visszajelzés
-- Mentés formátuma: Nev;Kategoria;Ar;Kaloria (Etel.ToString())`,
-    files: [
-      { name: "MainWindow.xaml.cs", hint: "Mentés + MentesFajlba + try/catch", code: TELJES_WPF_KOD.mainWindowXamlCs },
-      { name: "Etel.cs", hint: "ToString() adja a sorformátumot", code: TELJES_WPF_KOD.etelCs },
-      { name: "MainWindow.xaml", hint: "Mentés gomb Click eseménye", code: TELJES_WPF_KOD.mainWindowXaml }
-    ]
-  },
-  {
-    id: "8",
-    title: "8. összefoglaló",
-    description:
-`Ez a feladat egy rövid, tanulóbarát összefoglaló a teljes WPF projektről.
-
-Cél: egy helyen lásd, hogyan áll össze a modell + beolvasás + megjelenítés + szűrés + mentés.`,
-    files: [
-      { name: "Etel.cs", hint: "Teljes modell (adatok)", code: TELJES_WPF_KOD.etelCs },
-      { name: "MainWindow.xaml", hint: "Teljes felület (gombok + TextBox + DataGrid)", code: TELJES_WPF_KOD.mainWindowXaml },
-      { name: "MainWindow.xaml.cs", hint: "Teljes működés (betöltés, szűrés, mentés)", code: TELJES_WPF_KOD.mainWindowXamlCs },
-      {
-        name: "Osszefoglalo.txt",
-        hint: "Teljes projekt áttekintés (magyarázat)",
-        code:
-`/*
-8. összefoglaló – a teljes WPF alkalmazás felépítése
-
-1) Adatmodell (Etel osztály – Etel.cs)
-   - A modell egy ételt ír le: Nev, Kategoria, Ar, Kaloria.
-   - A ToString() visszaad egy mentésre alkalmas sort:
-     "Nev;Kategoria;Ar;Kaloria"
-
-2) Adatbetöltés fájlból (OpenFileDialog + CSV olvasás – MainWindow.xaml.cs)
-   - A "Megnyitás" gomb megnyit egy OpenFileDialog-ot.
-   - A kiválasztott fájlt soronként beolvassuk (pl. .csv vagy .txt).
-   - Minden nem üres sort feldarabolunk ';' mentén:
-       Nev;Kategoria;Ar;Kaloria
-   - Hibakezelés:
-     - try/catch köré tesszük a beolvasást
-     - hibánál MessageBox-ban jelezzük (érthető üzenettel)
-
-3) Adattárolás (ObservableCollection – MainWindow.xaml.cs)
-   - Az ételeket ObservableCollection<Etel> tárolja.
-   - Előnye: a felület (DataGrid) automatikusan követi a változásokat.
-   - Új fájl betöltésekor a listát kiürítjük és újratöltjük.
-
-4) Megjelenítés (DataGrid kötés – MainWindow.xaml + MainWindow.xaml.cs)
-   - A DataGrid oszlopai kézzel vannak megadva (AutoGenerateColumns="False"):
-     Név, Kategória, Ár (Ft), Kalória
-   - A DataGrid ItemsSource-a egy nézetre (ICollectionView) van kötve,
-     ami a szűrést is tudja kezelni.
-
-5) Szűrés (kis/nagybetű független – nézet szűrő feltétel)
-   - A TextBox-ba beírt szöveg alapján szűrünk.
-   - Logika: akkor látszik egy sor, ha a keresett szöveg benne van
-     a Nev vagy a Kategoria mezőben (kis/nagybetű független).
-   - Megvalósítási ötlet (tanulói szemlélettel):
-     - a nézet Filter függvénye dönt True/False értékkel
-     - kis/nagybetű független kereséshez használhatsz:
-         IndexOf(keresett, StringComparison.OrdinalIgnoreCase) >= 0
-     - ha külön „szűrt lista” kell, LINQ-kal így nézhet ki:
-         var szurtEtelek = etelek
-           .Where(etel => etel.Nev.Contains(keresett, StringComparison.OrdinalIgnoreCase)
-                       || etel.Kategoria.Contains(keresett, StringComparison.OrdinalIgnoreCase))
-           .ToList();
-   - Gépelés közben is frissíthető a nézet (TextChanged → Refresh()).
-
-6) Visszaállítás (szűrés törlése)
-   - A "Visszaállítás" gomb lenullázza a keresőmezőt (TextBox üres lesz).
-   - Ezután a nézetet frissítjük, így újra minden tétel látszik.
-
-7) Mentés (SaveFileDialog – csak a szűrt lista mentése)
-   - A "Mentés" gomb megnyit egy SaveFileDialog-ot.
-   - Mentéskor nem az összes elem, hanem az aktuálisan megjelenített
-     (tehát szűrés után látható) elemek kerülnek fájlba.
-   - A mentés soronként történik: Etel.ToString() adja a "CSV" sort.
-   - Hibakezelés itt is try/catch + MessageBox.
-
-Összkép:
-   - XAML: felület (gombok, TextBox, DataGrid)
-   - C#: adatok kezelése (betöltés, tárolás, szűrés, mentés)
-   - Modell: Etel osztály (adatok szerkezete)
-*/`
-      }
-    ]
-  }
+const CODE_SECTIONS = [
+  { title: "Dron.cs", code: TELJES_WPF_KOD.dronCs },
+  { title: "DronLista.cs", code: TELJES_WPF_KOD.dronListaCs },
+  { title: "MainWindow.xaml.cs", code: TELJES_WPF_KOD.mainWindowXamlCs },
+  { title: "MainWindow.xaml", code: TELJES_WPF_KOD.mainWindowXaml },
+  { title: "TipusSzuresView.xaml.cs", code: TELJES_WPF_KOD.tipusSzuresViewXamlCs },
+  { title: "TipusSzuresView.xaml", code: TELJES_WPF_KOD.tipusSzuresViewXaml }
 ];
 
-// JavaScript kizárólag a nézetváltáshoz és egyszerű UI-hoz
 const el = (sel) => document.querySelector(sel);
 
 function escapeHtml(s) {
@@ -454,92 +313,19 @@ function escapeHtml(s) {
     .replaceAll("'", "&#039;");
 }
 
-function listaNezetKirajzolasa() {
-  const lista = el("#taskList");
-  lista.innerHTML = "";
+function renderCodeBlocks() {
+  const box = el("#codeBlocks");
+  box.innerHTML = "";
 
-  TASKS.forEach((f) => {
-    const elem = document.createElement("div");
-    elem.className = "taskItem";
-    elem.setAttribute("role", "listitem");
-    elem.tabIndex = 0;
-
-    elem.innerHTML = `
-      <div class="taskItem__left">
-        <div class="taskItem__title">${escapeHtml(f.title)}</div>
-        <div class="taskItem__desc">${escapeHtml(f.description.split("\n")[0])}</div>
-      </div>
-      <div class="taskItem__chev">→</div>
+  CODE_SECTIONS.forEach((section) => {
+    const details = document.createElement("details");
+    details.className = "codeDetails";
+    details.innerHTML = `
+      <summary class="codeSummary">${escapeHtml(section.title)}</summary>
+      <pre class="codePre"><code>${escapeHtml(section.code)}</code></pre>
     `;
-
-    const nyit = () => feladatMegnyitasa(f.id);
-    elem.addEventListener("click", nyit);
-    elem.addEventListener("keydown", (e) => {
-      if (e.key === "Enter" || e.key === " ") {
-        e.preventDefault();
-        nyit();
-      }
-    });
-
-    lista.appendChild(elem);
+    box.appendChild(details);
   });
-
-  el("#homeView").classList.remove("hidden");
-  el("#detailView").classList.add("hidden");
 }
 
-function reszletNezetKirajzolasa(feladat) {
-  el("#detailTitle").textContent = feladat.title;
-  el("#detailDesc").textContent = feladat.description;
-
-  const doboz = el("#detailFiles");
-  doboz.innerHTML = "";
-
-  feladat.files.forEach((fajl) => {
-    const kartya = document.createElement("div");
-    kartya.className = "fileCard";
-    kartya.innerHTML = `
-      <div class="fileCard__header">
-        <div class="fileName">${escapeHtml(fajl.name)}</div>
-        <div class="fileHint">${escapeHtml(fajl.hint || "")}</div>
-      </div>
-      <pre><code>${escapeHtml(fajl.code)}</code></pre>
-    `;
-    doboz.appendChild(kartya);
-  });
-
-  el("#homeView").classList.add("hidden");
-  el("#detailView").classList.remove("hidden");
-}
-
-function feladatMegnyitasa(azonosito) {
-  const feladat = TASKS.find((x) => x.id === azonosito);
-  if (!feladat) {
-    listaNezetKirajzolasa();
-    return;
-  }
-  history.pushState({ nezet: "feladat", azonosito }, "", `#${encodeURIComponent(azonosito)}`);
-  reszletNezetKirajzolasa(feladat);
-}
-
-function vissza() {
-  history.pushState({ nezet: "lista" }, "", "#");
-  listaNezetKirajzolasa();
-}
-
-function urlAlapjanSzinkron() {
-  const hash = (location.hash || "").replace(/^#/, "").trim();
-  if (!hash) {
-    listaNezetKirajzolasa();
-    return;
-  }
-  const azonosito = decodeURIComponent(hash);
-  const feladat = TASKS.find((x) => x.id === azonosito);
-  if (feladat) reszletNezetKirajzolasa(feladat);
-  else listaNezetKirajzolasa();
-}
-
-el("#backBtn").addEventListener("click", vissza);
-window.addEventListener("popstate", urlAlapjanSzinkron);
-
-urlAlapjanSzinkron();
+renderCodeBlocks();

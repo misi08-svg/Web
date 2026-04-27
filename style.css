@@ -188,6 +188,48 @@ code{
   display:grid;
   gap: 12px;
 }
+.codeDetails{
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow:hidden;
+  background: rgba(11,14,20,.55);
+}
+.codeSummary{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding: 10px 12px;
+  cursor:pointer;
+  user-select:none;
+  border-bottom:1px solid var(--border);
+  background: rgba(20,24,35,.55);
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--text);
+  list-style: none;
+}
+.codeSummary::-webkit-details-marker{display:none}
+.codeSummary::after{
+  content: "▸";
+  color: var(--muted);
+  font-family: var(--mono);
+  transition: transform .12s ease;
+}
+.codeDetails[open] .codeSummary::after{
+  transform: rotate(90deg);
+}
+.codeSummary:focus-visible{
+  outline: 2px solid rgba(122,162,255,.65);
+  outline-offset: 2px;
+  border-radius: 10px;
+}
+.codePre{
+  margin:0;
+}
+.codeDetails:not([open]) .codePre{
+  display:none;
+}
 .fileCard{
   border: 1px solid var(--border);
   border-radius: 12px;

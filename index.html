@@ -3,14 +3,14 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Etelek – WPF feladat megoldás</title>
+  <title>Drónok – WPF feladat megoldás</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <header class="topbar">
     <div class="container topbar__inner">
       <div>
-        <div class="title">Etelek – WPF feladat megoldás</div>
+        <div class="title">Drónok – WPF feladat megoldás</div>
         <div class="subtitle">Statikus, lépésről-lépésre útmutató egy WPF (C#) beadandóhoz</div>
       </div>
       <div class="badge">WPF • C# • ObservableCollection • DataGrid</div>
@@ -24,37 +24,23 @@
       <p>A WPF alkalmazás futtatásához:</p>
       <ol>
         <li>Nyisd meg a Visual Studio-t</li>
-        <li>Hozz létre egy WPF projektet <b>'Etelek'</b> néven</li>
-        <li>Másold be a kódokat (<b>Etel.cs</b>, <b>MainWindow.xaml</b>, <b>MainWindow.xaml.cs</b>)</li>
+        <li>Hozz létre egy WPF projektet <b>'Drónok'</b> néven</li>
+        <li>Másold be a szükséges kódokat a projektedbe</li>
         <li>Indítsd el az alkalmazást</li>
       </ol>
     </section>
 
     <section class="card" id="app" aria-live="polite">
-      <div id="homeView">
-        <div class="splitHeader">
-          <h2>Feladatok</h2>
-          <div class="hint">Kattints egy feladatra a részletekért.</div>
-        </div>
-        <div id="taskList" class="taskList" role="list"></div>
+      <div class="splitHeader">
+        <h2>Kódok (lenyitható blokkok)</h2>
+        <div class="hint">Kattints a címsorra a kód megnyitásához.</div>
       </div>
-
-      <div id="detailView" class="hidden">
-        <div class="detailHeader">
-          <button id="backBtn" class="btn btn--ghost" type="button">Vissza</button>
-          <div class="detailHeader__titles">
-            <h2 id="detailTitle" class="m0"></h2>
-            <div id="detailDesc" class="detailDesc"></div>
-          </div>
-        </div>
-
-        <div id="detailFiles" class="files"></div>
-      </div>
+      <div id="codeBlocks" class="files"></div>
     </section>
 
     <footer class="footer">
       <div class="muted">
-        Tipp: nyisd meg a böngészőben az <code>index.html</code>-t. Nincs függőség, nincs külső betöltés.
+        Tipp: ezt az oldalt elég megnyitni a böngészőben. Nincs függőség, nincs külső betöltés.
       </div>
     </footer>
   </main>

@@ -3,44 +3,58 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Drónok – WPF feladat megoldás</title>
+  <title>Web helper</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <header class="topbar">
-    <div class="container topbar__inner">
-      <div>
-        <div class="title">Drónok – WPF feladat megoldás</div>
-        <div class="subtitle">Statikus, lépésről-lépésre útmutató egy WPF (C#) beadandóhoz</div>
+    <nav class="topbar__inner" aria-label="Top navigation">
+      <div class="topbar__left">
+        <div class="title">Web helper</div>
+        <div class="topbar__sub">Questions &amp; answers – WPF (C#) examples</div>
       </div>
-      <div class="badge">WPF • C# • ObservableCollection • DataGrid</div>
-    </div>
+      <div class="topbar__right">
+        <label class="search" aria-label="Search (UI only)">
+          <input class="search__input" type="search" placeholder="Search (e.g. CSV, LINQ, DataGrid…)" />
+        </label>
+      </div>
+    </nav>
   </header>
 
-  <main class="container">
-    <section class="card">
-      <h2>Projekt indítása (tanulói útmutató)</h2>
-      <p>Ez az oldal csak a megoldást mutatja be.</p>
-      <p>A WPF alkalmazás futtatásához:</p>
-      <ol>
-        <li>Nyisd meg a Visual Studio-t</li>
-        <li>Hozz létre egy WPF projektet <b>'Drónok'</b> néven</li>
-        <li>Másold be a szükséges kódokat a projektedbe</li>
-        <li>Indítsd el az alkalmazást</li>
-      </ol>
-    </section>
+  <main class="page">
+    <div class="layout">
+      <section class="main" id="app" aria-live="polite">
+        <div class="intro">
+          <div class="intro__title">Question list</div>
+          <div class="intro__text">Click a question title to open the answer (code).</div>
+        </div>
 
-    <section class="card" id="app" aria-live="polite">
-      <div class="splitHeader">
-        <h2>Kódok (lenyitható blokkok)</h2>
-        <div class="hint">Kattints a címsorra a kód megnyitásához.</div>
-      </div>
-      <div id="codeBlocks" class="files"></div>
-    </section>
+        <div id="codeBlocks" class="qa" aria-label="Questions"></div>
+      </section>
+
+      <aside class="sidebar" aria-label="Side panels">
+        <div class="sideBox">
+          <div class="sideBox__title">Tips</div>
+          <ul class="sideList">
+            <li>Start by validating the input file (CSV) and handling the header row</li>
+            <li>When filtering, consider case-insensitive matching (e.g. <code>ToLower()</code>)</li>
+            <li>Before saving, check what is in <code>ItemsSource</code> (full list vs filtered list)</li>
+          </ul>
+        </div>
+        <div class="sideBox">
+          <div class="sideBox__title">Note</div>
+          <div class="sideBox__text">For a quick overview, open the questions one by one. The search box is UI only (no functionality).</div>
+        </div>
+        <div class="sideBox">
+          <div class="sideBox__title">Learning hint</div>
+          <div class="sideBox__text">Try implementing it yourself first, then compare with the solution here. It helps you learn faster.</div>
+        </div>
+      </aside>
+    </div>
 
     <footer class="footer">
       <div class="muted">
-        Tipp: ezt az oldalt elég megnyitni a böngészőben. Nincs függőség, nincs külső betöltés.
+        Tip: this page works offline. Just open it in a browser (no dependencies, no external loading).
       </div>
     </footer>
   </main>

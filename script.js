@@ -294,12 +294,12 @@ namespace WpfDronok.Views
 };
 
 const CODE_SECTIONS = [
-  { title: "Dron.cs", code: TELJES_WPF_KOD.dronCs },
-  { title: "DronLista.cs", code: TELJES_WPF_KOD.dronListaCs },
-  { title: "MainWindow.xaml.cs", code: TELJES_WPF_KOD.mainWindowXamlCs },
-  { title: "MainWindow.xaml", code: TELJES_WPF_KOD.mainWindowXaml },
-  { title: "TipusSzuresView.xaml.cs", code: TELJES_WPF_KOD.tipusSzuresViewXamlCs },
-  { title: "TipusSzuresView.xaml", code: TELJES_WPF_KOD.tipusSzuresViewXaml }
+  { file: "DronLista.cs", question: "How to read a CSV file in C#", code: TELJES_WPF_KOD.dronListaCs },
+  { file: "TipusSzuresView.xaml", question: "How to use a DataGrid in WPF", code: TELJES_WPF_KOD.tipusSzuresViewXaml },
+  { file: "TipusSzuresView.xaml.cs", question: "LINQ filtering on lists (contains / case-insensitive)", code: TELJES_WPF_KOD.tipusSzuresViewXamlCs },
+  { file: "MainWindow.xaml.cs", question: "Error handling with try-catch", code: TELJES_WPF_KOD.mainWindowXamlCs },
+  { file: "Dron.cs", question: "List vs ObservableCollection (what’s the difference?)", code: TELJES_WPF_KOD.dronCs },
+  { file: "MainWindow.xaml", question: "WPF window + menu structure (XAML)", code: TELJES_WPF_KOD.mainWindowXaml }
 ];
 
 const el = (sel) => document.querySelector(sel);
@@ -319,9 +319,10 @@ function renderCodeBlocks() {
 
   CODE_SECTIONS.forEach((section) => {
     const details = document.createElement("details");
-    details.className = "codeDetails";
+    details.className = "qaItem";
     details.innerHTML = `
-      <summary class="codeSummary">${escapeHtml(section.title)}</summary>
+      <summary class="qaSummary">${escapeHtml(section.question)}</summary>
+      <div class="qaMeta">File: <span class="qaFile">${escapeHtml(section.file)}</span></div>
       <pre class="codePre"><code>${escapeHtml(section.code)}</code></pre>
     `;
     box.appendChild(details);
